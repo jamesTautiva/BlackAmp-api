@@ -43,7 +43,7 @@ exports.uploadFile = async (req, res) => {
 
     if (uploadError) throw uploadError;
 
-    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/blackamp/${filename}`;
+    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
     entity.imageUrl = publicUrl;
     await entity.save();
 
