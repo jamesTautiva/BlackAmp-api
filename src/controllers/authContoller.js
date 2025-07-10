@@ -20,3 +20,8 @@ exports.login = async (req, res) => {
   const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
 };
+
+exports.users = async (req, res) => {
+  const users = await User.findAll({ attributes: ['id', 'name', 'email', 'role', 'imageUrl'] });
+  res.json(users);
+}
