@@ -1,33 +1,56 @@
-const fs = require('fs');
+// src/controllers/uploadController.js
 const supabase = require('../config/supabase');
-const db = require('../models');
+const { User, Artist, Album, Song, Playlist } = require('../models');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
-exports.subirArchivo = async (req, res) => {
-  const { tipo, id } = req.params;
-  const archivo = req.file;
-  if (!archivo) return res.status(400).json({ error: 'Archivo requerido' });
+const modelMap = {
+  users: User,
+  artists: Artist,
+  albums: Album,
+  songs: Song,
+  playlists: Playlist
+};
 
-  const buffer = fs.readFileSync(archivo.path);
-  const filename = `${tipo}/${Date.now()}-${archivo.originalname}`;
-  const { data, error } = await supabase.storage.from('media').upload(filename, buffer, {
-    contentType: archivo.mimetype,
-  });
+exports.uploadFile = async (req, res) => {
+  try {
+    const { tipo, id } = req.params;
+    const file = req.file;
 
-  fs.unlinkSync(archivo.path);
-  if (error) return res.status(500).json({ error: error.message });
+    if (!file) {
+      return res.status(400).json({ error: 'Archivo no proporcionado' });
+    }
 
-  const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
+    const model = modelMap[tipo];
+    if (!model) {
+      return res.status(400).json({ error: 'Tipo no válido' });
+    }
 
-  const updates = {
-    users: () => db.User.update({ imageUrl: url }, { where: { id } }),
-    artists: () => db.Artist.update({ imageUrl: url }, { where: { id } }),
-    albums: () => db.Album.update({ coverUrl: url }, { where: { id } }),
-    songs: () => db.Song.update({ audioUrl: url }, { where: { id } }),
-    playlists: () => db.Playlist.update({ imageUrl: url }, { where: { id } }),
-  };
+    const entity = await model.findByPk(id);
+    if (!entity) {
+      return res.status(404).json({ error: `${tipo.slice(0, -1)} no encontrado` });
+    }
 
-  if (!updates[tipo]) return res.status(400).json({ error: 'Tipo inválido' });
+    const extension = path.extname(file.originalname);
+    const filename = `${tipo}/${id}_${uuidv4()}${extension}`;
 
-  await updates[tipo]();
-  res.json({ message: 'Archivo subido', url });
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filename, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    if (uploadError) throw uploadError;
+
+    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/blackamp/${filename}`;
+    entity.imageUrl = publicUrl;
+    await entity.save();
+
+    return res.json({ message: 'Archivo subido', url: publicUrl });
+
+  } catch (err) {
+    console.error('Error en subida:', err.message);
+    return res.status(500).json({ error: 'Error interno del servidor', detail: err.message });
+  }
 };
