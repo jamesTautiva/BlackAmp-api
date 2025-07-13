@@ -7,7 +7,9 @@ const Album = require('./Album')(sequelize, DataTypes);
 const Song = require('./Song')(sequelize, DataTypes);
 const Playlist = require('./Playlist')(sequelize, DataTypes);
 const Composer = require('./Composer')(sequelize, DataTypes);
+const PlaybackLog = require('./PlaybackLog')(sequelize, DataTypes);
 
+// Relaciones existentes
 Artist.hasMany(Album);
 Album.belongsTo(Artist);
 
@@ -27,4 +29,18 @@ const PlaylistSongs = sequelize.define('PlaylistSongs', {}, { timestamps: false 
 Playlist.belongsToMany(Song, { through: PlaylistSongs });
 Song.belongsToMany(Playlist, { through: PlaylistSongs });
 
-module.exports = { sequelize, User, Artist, Album, Song, Playlist, PlaylistSongs };
+// Relaciones para analíticas
+PlaybackLog.belongsTo(User, { foreignKey: 'userId' });
+PlaybackLog.belongsTo(Song, { foreignKey: 'songId' });
+
+module.exports = {
+  sequelize,
+  User,
+  Artist,
+  Album,
+  Song,
+  Playlist,
+  PlaylistSongs,
+  Composer,
+  PlaybackLog
+};

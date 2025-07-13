@@ -15,6 +15,7 @@ const artistRoutes = require('./src/routes/artistRoutes');
 const albumRoutes = require('./src/routes/albumRoutes');
 const songRoutes = require('./src/routes/songRoutes');
 const playlistRoutes = require('./src/routes/playlistRoutes');
+const analyticsRoutes = require('./src/routes/analytics');
 
 app.use('/auth', authRoutes);
 app.use('/upload', uploadRoutes);
