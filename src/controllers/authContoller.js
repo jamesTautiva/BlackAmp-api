@@ -80,3 +80,20 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ error: 'Error al eliminar usuario', detail: err.message });
   }
 };
+
+exports.getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id, {
+      attributes: ['id', 'name', 'email', 'role', 'imageUrl', 'createdAt']
+    });
+
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    res.json(user);
+
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener usuario', detail: err.message });
+  }
+};
