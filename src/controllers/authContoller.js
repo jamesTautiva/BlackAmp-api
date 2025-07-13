@@ -42,3 +42,41 @@ exports.users = async (req, res) => {
   const users = await User.findAll({ attributes: ['id', 'name', 'email', 'role', 'imageUrl'] });
   res.json(users);
 }
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const { name, email, password, role, imageUrl } = req.body;
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) user.password = await hashPassword(password);
+    if (role) user.role = role;
+    if (imageUrl) user.imageUrl = imageUrl; // Si se actualiza por URL
+
+    await user.save();
+    res.json({ message: 'Usuario actualizado', user });
+
+  } catch (err) {
+    res.status(500).json({ error: 'Error al actualizar usuario', detail: err.message });
+  }
+};
+
+// ✅ Eliminar usuario
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await User.destroy({ where: { id } });
+    if (!deleted) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    res.json({ message: 'Usuario eliminado correctamente' });
+
+  } catch (err) {
+    res.status(500).json({ error: 'Error al eliminar usuario', detail: err.message });
+  }
+};
