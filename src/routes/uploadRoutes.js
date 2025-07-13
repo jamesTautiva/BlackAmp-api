@@ -6,6 +6,6 @@ const { requireAuth , requireAuth} = require('../middleware/auth');
 
 router.post('/:tipo/:id', requireAuth, upload.single('file'), uploadController.uploadFile);
 // ✅ Ruta para actualizar imagen
-router.put('/:tipo/:id', requireAuth, upload.single('file'), updateImage);
+router.put('/users/:id', requireAuth, upload.single('file'), updateImage);
 
 module.exports = router;
