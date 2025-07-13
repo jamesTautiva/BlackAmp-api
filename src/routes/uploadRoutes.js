@@ -5,5 +5,7 @@ const upload = require('../middleware/multer');
 const { requireAuth } = require('../middleware/auth');
 
 router.post('/:tipo/:id', requireAuth, upload.single('file'), uploadController.uploadFile);
+// ✅ Ruta para actualizar imagen
+router.put('/:tipo/:id', requireAuth, upload.single('file'), updateImage);
 
 module.exports = router;
