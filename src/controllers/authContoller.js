@@ -132,15 +132,13 @@ exports.getUsersWithArtists = async (req, res) => {
 
 exports.getAllArtistsWithUsers = async (req, res) => {
   try {
+    console.log('Obteniendo artistas con usuarios...');
     const artists = await Artist.findAll({
-      include: {
-        model: User,
-        attributes: ['id', 'email', 'role'], // puedes ajustar los campos
-      },
+      include: [{ model: User, attributes: ['id', 'email'] }],
     });
-    res.json(artists);
-  } catch (err) {
-    console.error('Error al obtener artistas con usuarios:', err);
+    res.status(200).json(artists);
+  } catch (error) {
+    console.error('Error:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
