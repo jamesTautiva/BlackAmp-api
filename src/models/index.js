@@ -9,8 +9,8 @@ const Playlist = require('./Playlist')(sequelize, DataTypes);
 const Composer = require('./Composer')(sequelize, DataTypes);
 const PlaybackLog = require('./PlaybackLog')(sequelize, DataTypes);
 
-User.hasOne(Artist, { foreignKey: 'userId' });
-Artist.belongsTo(User, { foreignKey: 'userId' });
+User.hasOne(Artist, { foreignKey: 'userId', as: 'artist' });
+Artist.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 Artist.hasMany(Album);
 Album.belongsTo(Artist);
