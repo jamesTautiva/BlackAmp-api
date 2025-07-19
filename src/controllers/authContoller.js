@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { User , Artist} = require('../models');
 const jwt = require('jsonwebtoken');
 const { hashPassword, comparePassword } = require('../utils/hash');
 
@@ -100,13 +100,32 @@ exports.getUserById = async (req, res) => {
 
 exports.getUsersWithArtists = async (req, res) => {
   try {
+    // Verifica que los modelos estén correctamente importados
+    if (!User || !Artist) {
+      throw new Error('Modelos no definidos');
+    }
+
+    // Obtiene usuarios con rol de artista y sus perfiles asociados
     const users = await User.findAll({
       where: { role: 'artist' },
-      include: [{ model: Artist, as: 'artist' }]
+      include: [{
+        model: Artist,
+        as: 'artist',
+        required: false // Para incluir usuarios aunque no tengan perfil
+      }],
+      attributes: ['id', 'name', 'email', 'role'] // Selecciona solo los campos necesarios
     });
-    
-    res.json(users);
+
+    // Filtra para devolver solo los usuarios con perfil de artista
+    const usersWithArtists = users.filter(user => user.artist !== null);
+
+    res.status(200).json(usersWithArtists);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error en getUsersWithArtists:', err);
+    res.status(500).json({ 
+      error: 'Error al obtener artistas',
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 };
