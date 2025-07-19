@@ -18,3 +18,12 @@ exports.requireAuth = async (req, res, next) => {
     return res.status(401).json({ error: 'Token inválido' });
   }
 };
+
+exports.requireRole = (role) => {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== role) {
+      return res.status(403).json({ error: 'Acceso denegado: rol insuficiente' });
+    }
+    next();
+  };
+};
