@@ -9,8 +9,6 @@ const Playlist = require('./Playlist')(sequelize, DataTypes);
 const Composer = require('./Composer')(sequelize, DataTypes);
 const PlaybackLog = require('./PlaybackLog')(sequelize, DataTypes);
 
-// Relaciones existentes
-
 User.hasOne(Artist, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Artist.belongsTo(User, { foreignKey: 'userId' });
 
@@ -33,7 +31,6 @@ const PlaylistSongs = sequelize.define('PlaylistSongs', {}, { timestamps: false 
 Playlist.belongsToMany(Song, { through: PlaylistSongs });
 Song.belongsToMany(Playlist, { through: PlaylistSongs });
 
-// Relaciones para analíticas
 PlaybackLog.belongsTo(User, { foreignKey: 'userId' });
 PlaybackLog.belongsTo(Song, { foreignKey: 'songId' });
 

@@ -22,7 +22,6 @@ exports.createAlbum = async (req, res) => {
   }
 };
 
-// Obtener todos los álbumes APROBADOS (para usuarios)
 exports.getAllAlbums = async (req, res) => {
   try {
     const albums = await Album.findAll({
@@ -35,7 +34,6 @@ exports.getAllAlbums = async (req, res) => {
   }
 };
 
-// Obtener álbum por ID (sin importar estado)
 exports.getAlbumById = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id, { include: [Artist] });
@@ -46,7 +44,6 @@ exports.getAlbumById = async (req, res) => {
   }
 };
 
-// Actualizar álbum (usado por artistas, mantiene status 'pending')
 exports.updateAlbum = async (req, res) => {
   try {
     const updated = await Album.update(req.body, { where: { id: req.params.id } });
@@ -56,7 +53,6 @@ exports.updateAlbum = async (req, res) => {
   }
 };
 
-// Eliminar álbum
 exports.deleteAlbum = async (req, res) => {
   try {
     await Album.destroy({ where: { id: req.params.id } });
@@ -66,7 +62,6 @@ exports.deleteAlbum = async (req, res) => {
   }
 };
 
-// Admin: obtener álbumes pendientes
 exports.getPendingAlbums = async (req, res) => {
   try {
     const albums = await Album.findAll({
@@ -79,7 +74,6 @@ exports.getPendingAlbums = async (req, res) => {
   }
 };
 
-// Admin: aprobar álbum
 exports.approveAlbum = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id);
@@ -93,7 +87,6 @@ exports.approveAlbum = async (req, res) => {
   }
 };
 
-// Admin: rechazar álbum
 exports.rejectAlbum = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id);
