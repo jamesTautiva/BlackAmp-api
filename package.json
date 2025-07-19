@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": " npx sequelize-cli db:migrate && nodemon app.js"
+    "start": " npx sequelize-cli db:migrate && nodemon app.js",
+      "migrate": "npx sequelize-cli db:migrate --env production"
+
   },
   "repository": {
     "type": "git",
