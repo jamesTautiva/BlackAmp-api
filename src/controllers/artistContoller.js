@@ -10,6 +10,8 @@ exports.createArtistProfile = async (req, res) => {
     }
 
     const artist = await Artist.create({ name, description, genere, userId });
+        console.log('Datos recibidos en el body:', req.body);
+
     res.status(201).json(artist);
   } catch (err) {
     console.error('Error al crear artista:', err);
