@@ -1,21 +1,20 @@
 const jwt = require('jsonwebtoken');
 
-const requireAuth = (req, res, next) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'Token faltante' });
+const jwt = require('jsonwebtoken');
+const { User } = require('../models');
+
+exports.requireAuth = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Token faltante' });
+
   try {
-    const token = auth.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const user = await User.findByPk(decoded.id);
+    if (!user) return res.status(401).json({ error: 'Usuario no encontrado' });
+
+    req.user = user;
     next();
-  } catch {
+  } catch (err) {
     return res.status(401).json({ error: 'Token inválido' });
   }
 };
-
-const requireRole = (role) => (req, res, next) => {
-  if (req.user?.role !== role) return res.status(403).json({ error: 'Acceso denegado' });
-  next();
-};
-
-module.exports = { requireAuth, requireRole };

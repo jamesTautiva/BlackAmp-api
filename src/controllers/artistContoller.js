@@ -3,17 +3,20 @@ const { Artist, User } = require('../models');
 exports.createArtistProfile = async (req, res) => {
   try {
     const { name, description, genere } = req.body;
-    const artist = await Artist.create({
-      name,
-      description,
-      genere,
-      userId: req.user.id,
-    });
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+
+    const artist = await Artist.create({ name, description, genere, userId });
     res.status(201).json(artist);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error al crear artista:', err);
+    res.status(500).json({ error: 'Error del servidor', detail: err.message });
   }
 };
+
 
 exports.getAllArtists = async (req, res) => {
   try {
