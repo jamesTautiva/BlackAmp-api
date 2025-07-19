@@ -9,7 +9,7 @@ router.get('/users', users);
 router.get('/:id', requireAuth, getUserById);
 router.put('/:id', requireAuth, updateUser);
 router.delete('/:id', requireAuth, deleteUser);
-router.get('/users-with-artists', requireAuth, getAllArtistsWithUsers); // Nueva ruta
+router.get('/artists-with-users', requireAuth, getAllArtistsWithUsers); // Nueva ruta
 
 
 module.exports = router;
