@@ -19,6 +19,39 @@ exports.createArtistProfile = async (req, res) => {
   }
 };
 
+exports.getArtistByUserId = async (req, res) => {
+  try {
+    const artist = await Artist.findOne({ 
+      where: { userId: req.params.userId },
+      include: [{ model: User, as: 'user' }]
+    });
+    
+    if (!artist) {
+      return res.status(404).json({ error: 'Artista no encontrado' });
+    }
+    
+    res.json(artist);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getUserWithArtist = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.userId, {
+      include: [{ model: Artist, as: 'artist' }]
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 exports.getAllArtists = async (req, res) => {
   try {

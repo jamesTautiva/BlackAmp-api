@@ -97,3 +97,16 @@ exports.getUserById = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener usuario', detail: err.message });
   }
 };
+
+exports.getUsersWithArtists = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      where: { role: 'artist' },
+      include: [{ model: Artist, as: 'artist' }]
+    });
+    
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

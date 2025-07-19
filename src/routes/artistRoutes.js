@@ -8,5 +8,8 @@ router.get('/', controller.getAllArtists);
 router.get('/:id', controller.getArtistById);
 router.put('/:id', requireAuth, controller.updateArtist);
 router.delete('/:id', requireAuth, controller.deleteArtist);
+router.get('/user/:userId', controller.getArtistByUserId); // Nueva ruta importante
+// Ruta para obtener usuario con datos de artista
+router.get('/user-with-artist/:userId', controller.getUserWithArtist);
 
 module.exports = router;
