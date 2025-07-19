@@ -10,6 +10,10 @@ const Composer = require('./Composer')(sequelize, DataTypes);
 const PlaybackLog = require('./PlaybackLog')(sequelize, DataTypes);
 
 // Relaciones existentes
+
+User.hasOne(Artist, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Artist.belongsTo(User, { foreignKey: 'userId' });
+
 Artist.hasMany(Album);
 Album.belongsTo(Artist);
 

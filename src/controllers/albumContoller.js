@@ -3,10 +3,19 @@ const { Album, Artist } = require('../models');
 // Crear álbum (estado por defecto: pending)
 exports.createAlbum = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const artist = await Artist.findOne({ where: { userId } });
+
+    if (!artist) {
+      return res.status(403).json({ error: 'No tienes un perfil de artista' });
+    }
+
     const album = await Album.create({
       ...req.body,
-      status: 'pending'  // moderación manual
+      artistId: artist.id,
+      status: 'pending'
     });
+
     res.status(201).json(album);
   } catch (err) {
     res.status(500).json({ error: err.message });

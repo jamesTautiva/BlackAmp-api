@@ -1,14 +1,22 @@
-const { Song, Composer } = require('../models');
+const { Song, Composer, Album, Artist} = require('../models');
+
 
 exports.createSong = async (req, res) => {
   try {
-    const { title, audioUrl, composers } = req.body;
+    const userId = req.user.id;
+    const { title, audioUrl, albumId, composers } = req.body;
 
     if (!title || !composers || !Array.isArray(composers) || composers.length === 0) {
-      return res.status(400).json({ error: 'El título y al menos un compositor son requeridos.' });
+      return res.status(400).json({ error: 'Faltan datos obligatorios.' });
     }
 
-    const song = await Song.create({ title, audioUrl });
+    const artist = await Artist.findOne({ where: { userId } });
+    if (!artist) return res.status(403).json({ error: 'No autorizado' });
+
+    const album = await Album.findOne({ where: { id: albumId, artistId: artist.id } });
+    if (!album) return res.status(403).json({ error: 'El álbum no pertenece a tu perfil' });
+
+    const song = await Song.create({ title, audioUrl, albumId });
 
     const composerInstances = await Promise.all(
       composers.map(async (name) => {
@@ -18,7 +26,6 @@ exports.createSong = async (req, res) => {
     );
 
     await song.addComposers(composerInstances);
-
     res.status(201).json(song);
   } catch (err) {
     res.status(500).json({ error: err.message });

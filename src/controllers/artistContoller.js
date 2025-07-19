@@ -1,11 +1,25 @@
-const { Artist } = require('../models');
+const { Artist, User } = require('../models');
 
-exports.createArtist = async (req, res) => {
+exports.createArtistProfile = async (req, res) => {
   try {
-    const artist = await Artist.create(req.body);
+    const userId = req.user.id;
+
+    const user = await User.findByPk(userId);
+    if (!user || user.role !== 'artist') {
+      return res.status(403).json({ error: 'No autorizado. Solo usuarios artistas pueden crear perfiles' });
+    }
+
+    const exists = await Artist.findOne({ where: { userId } });
+    if (exists) return res.status(400).json({ error: 'Ya tienes un perfil de artista' });
+
+    const artist = await Artist.create({
+      ...req.body,
+      userId,
+    });
+
     res.status(201).json(artist);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Error al crear perfil', detail: err.message });
   }
 };
 
