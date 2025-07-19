@@ -21,6 +21,7 @@ sequelize.authenticate()
     console.error('No se pudo conectar a la base de datos:', err);
 })
  
-sequelize.sync()
+sequelize.sync({ force: true }).then(() => {
+  console.log('🔁 Tablas recreadas desde los modelos.');
 
 module.exports = sequelize;
