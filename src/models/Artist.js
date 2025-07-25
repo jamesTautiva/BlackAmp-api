@@ -12,6 +12,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    linkFacebook: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    linkInstagram: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    linkYoutube: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
