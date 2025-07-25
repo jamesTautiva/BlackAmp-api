@@ -103,20 +103,19 @@ exports.getArtistById = async (req, res) => {
       include: [
         {
           model: User,
-          required: false // permite que user sea null
-        }
-      ]
+          as: 'user', // Usa el alias exacto usado en la asociación
+          required: false,
+        },
+      ],
     });
 
     if (!artist) return res.status(404).json({ error: 'Artista no encontrado' });
     res.json(artist);
-
   } catch (err) {
     console.error('❌ Error en getArtistById:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
-
 exports.updateArtist = async (req, res) => {
   try {
     const updated = await Artist.update(req.body, {
