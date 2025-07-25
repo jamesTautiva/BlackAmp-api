@@ -41,13 +41,13 @@ exports.getUserWithArtist = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Buscar el usuario incluyendo su perfil de artista
+    // Usa el mismo alias 'artist' que definiste en la asociación
     const userWithArtist = await User.findOne({
       where: { id: userId },
       include: [{
         model: Artist,
-        as: 'artistProfile', // Asegúrate que coincida con la asociación en el modelo
-        required: false // Para incluir aunque no tenga perfil de artista
+        as: 'artist', // Debe coincidir exactamente con el alias en la asociación
+        required: false
       }]
     });
 
@@ -55,7 +55,7 @@ exports.getUserWithArtist = async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    if (!userWithArtist.artistProfile) {
+    if (!userWithArtist.artist) {
       return res.status(404).json({ error: 'Este usuario no tiene perfil de artista' });
     }
 
@@ -66,7 +66,7 @@ exports.getUserWithArtist = async (req, res) => {
         email: userWithArtist.email,
         role: userWithArtist.role
       },
-      artist: userWithArtist.artistProfile
+      artist: userWithArtist.artist // Cambiado de artistProfile a artist
     });
   } catch (err) {
     console.error('Error en getUserWithArtist:', err);
