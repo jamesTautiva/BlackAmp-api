@@ -3,15 +3,22 @@ const { users } = require('./authContoller');
 
 exports.createArtistProfile = async (req, res) => {
   try {
-    const { name, description, genere } = req.body;
-    const userId = req.user.id;
+    const { name, description, genere, userId: bodyUserId } = req.body;
+    const authUser = req.user;
 
-    if (!userId) {
-      return res.status(401).json({ error: 'No autorizado' });
+    // Si es admin y manda userId, úsalo. Si no, usa su propio ID
+    const userId = authUser.role === 'admin' && bodyUserId
+      ? parseInt(bodyUserId)
+      : authUser.id;
+
+    // Verifica que el usuario ya no tenga un perfil de artista
+    const existingArtist = await Artist.findOne({ where: { userId } });
+    if (existingArtist) {
+      return res.status(400).json({ error: 'Este usuario ya tiene un perfil de artista' });
     }
 
     const artist = await Artist.create({ name, description, genere, userId });
-        console.log('Datos recibidos en el body:', req.body);
+    console.log('Artista creado:', artist.toJSON());
 
     res.status(201).json(artist);
   } catch (err) {
