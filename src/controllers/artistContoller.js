@@ -118,10 +118,36 @@ exports.getArtistById = async (req, res) => {
 };
 exports.updateArtist = async (req, res) => {
   try {
-    const updated = await Artist.update(req.body, {
-      where: { id: req.params.id, userId: req.user.id }
+    const artist = await Artist.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id
+      }
     });
-    res.json({ message: 'Artista actualizado', updated });
+
+    if (!artist) {
+      return res.status(404).json({ error: 'Artista no encontrado o no autorizado' });
+    }
+
+    const {
+      name,
+      description,
+      genere,
+      facebook,
+      instagram,
+      youtube
+    } = req.body;
+
+    artist.name = name || artist.name;
+    artist.description = description || artist.description;
+    artist.genere = genere || artist.genere;
+    artist.facebook = facebook || artist.facebook;
+    artist.instagram = instagram || artist.instagram;
+    artist.youtube = youtube || artist.youtube;
+
+    await artist.save();
+
+    res.json({ message: 'Artista actualizado', artist });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
