@@ -118,15 +118,15 @@ exports.getArtistById = async (req, res) => {
 };
 exports.updateArtist = async (req, res) => {
   try {
-    const artist = await Artist.findOne({
-      where: {
-        id: req.params.id,
-        userId: req.user.id
-      }
-    });
+    const artist = await Artist.findByPk(req.params.id);
 
     if (!artist) {
-      return res.status(404).json({ error: 'Artista no encontrado o no autorizado' });
+      return res.status(404).json({ error: 'Artista no encontrado' });
+    }
+
+    // Si no es admin, verificar que el artista le pertenezca
+    if (req.user.role !== 'admin' && artist.userId !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado para actualizar este artista' });
     }
 
     const {
@@ -138,12 +138,12 @@ exports.updateArtist = async (req, res) => {
       youtube
     } = req.body;
 
-    artist.name = name || artist.name;
-    artist.description = description || artist.description;
-    artist.genere = genere || artist.genere;
-    artist.facebook = facebook || artist.facebook;
-    artist.instagram = instagram || artist.instagram;
-    artist.youtube = youtube || artist.youtube;
+    artist.name = name ?? artist.name;
+    artist.description = description ?? artist.description;
+    artist.genere = genere ?? artist.genere;
+    artist.facebook = facebook ?? artist.facebook;
+    artist.instagram = instagram ?? artist.instagram;
+    artist.youtube = youtube ?? artist.youtube;
 
     await artist.save();
 
@@ -152,6 +152,7 @@ exports.updateArtist = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 exports.deleteArtist = async (req, res) => {
   try {
