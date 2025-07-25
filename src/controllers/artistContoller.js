@@ -99,11 +99,21 @@ exports.getAllArtists = async (req, res) => {
 
 exports.getArtistById = async (req, res) => {
   try {
-    const artist = await Artist.findByPk(req.params.id, { include: [User] });
+    const artist = await Artist.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          required: false // permite que user sea null
+        }
+      ]
+    });
+
     if (!artist) return res.status(404).json({ error: 'Artista no encontrado' });
     res.json(artist);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Error en getArtistById:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 
