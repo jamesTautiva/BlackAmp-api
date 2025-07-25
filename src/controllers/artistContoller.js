@@ -1,4 +1,5 @@
 const { Artist, User } = require('../models');
+const { users } = require('./authContoller');
 
 exports.createArtistProfile = async (req, res) => {
   try {
@@ -38,19 +39,44 @@ exports.getArtistByUserId = async (req, res) => {
 
 exports.getUserWithArtist = async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.userId, {
-      include: [{ model: Artist, as: 'artist' }]
+    const { userId } = req.params;
+
+    // Buscar el usuario incluyendo su perfil de artista
+    const userWithArtist = await User.findOne({
+      where: { id: userId },
+      include: [{
+        model: Artist,
+        as: 'artistProfile', // Asegúrate que coincida con la asociación en el modelo
+        required: false // Para incluir aunque no tenga perfil de artista
+      }]
     });
-    
-    if (!user) {
+
+    if (!userWithArtist) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    
-    res.json(user);
+
+    if (!userWithArtist.artistProfile) {
+      return res.status(404).json({ error: 'Este usuario no tiene perfil de artista' });
+    }
+
+    res.json({
+      user: {
+        id: userWithArtist.id,
+        name: userWithArtist.name,
+        email: userWithArtist.email,
+        role: userWithArtist.role
+      },
+      artist: userWithArtist.artistProfile
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error en getUserWithArtist:', err);
+    res.status(500).json({ 
+      error: 'Error al obtener usuario con artista',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
+
 
 
 exports.getAllArtists = async (req, res) => {
