@@ -88,7 +88,9 @@ exports.getUserWithArtist = async (req, res) => {
 
 exports.getAllArtists = async (req, res) => {
   try {
-    const artists = await Artist.findAll({ include: [User] });
+    const artists = await Artist.findAll({
+      include: [{ model: User, as: 'user' }]
+    });
     res.json(artists);
   } catch (err) {
     res.status(500).json({ error: err.message });
