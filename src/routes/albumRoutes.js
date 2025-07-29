@@ -1,18 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/albumContoller');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdminAuth } = require('../middleware/auth');
 
-// Rutas para usuarios autenticados
+// Rutas públicas o para usuarios autenticados
+
+// Crear un nuevo álbum (requiere perfil de artista)
 router.post('/', requireAuth, controller.createAlbum);
+
+// Obtener todos los álbumes aprobados (público)
 router.get('/', controller.getAllAlbums);
+
+// Obtener un álbum por ID (público)
 router.get('/:id', controller.getAlbumById);
+
+// Actualizar un álbum (solo artista dueño)
 router.put('/:id', requireAuth, controller.updateAlbum);
+
+// Eliminar un álbum (solo artista dueño)
 router.delete('/:id', requireAuth, controller.deleteAlbum);
 
-// Rutas de moderación manual (solo admin)
-router.get('/admin/pending', requireAuth, controller.getPendingAlbums);
-router.put('/admin/:id/approve', requireAuth, controller.approveAlbum);
-router.put('/admin/:id/reject', requireAuth, controller.rejectAlbum);
+
+// --- Rutas para moderadores o administradores ---
+
+// Obtener todos los álbumes pendientes (solo admin)
+router.get('/admin/albums/pending', requireAuth, requireAdminAuth, controller.getPendingAlbums);
+
+// Aprobar un álbum por ID (solo admin)
+router.put('/admin/albums/:id/approve', requireAuth, requireAdminAuth, controller.approveAlbum);
+
+// Rechazar un álbum por ID (solo admin)
+router.put('/admin/albums/:id/reject', requireAuth, requireAdminAuth, controller.rejectAlbum);
 
 module.exports = router;

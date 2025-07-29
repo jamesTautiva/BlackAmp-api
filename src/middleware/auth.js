@@ -27,3 +27,11 @@ exports.requireAuth = async (req, res, next) => {
     res.status(401).json({ error: 'Token inválido' });
   }
 };
+
+exports.requireAdminAuth = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    return next();
+  }
+
+  return res.status(403).json({ error: 'Acceso denegado: se requiere rol de administrador' });
+};

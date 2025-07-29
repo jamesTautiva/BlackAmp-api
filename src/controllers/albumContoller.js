@@ -10,18 +10,28 @@ exports.createAlbum = async (req, res) => {
       return res.status(403).json({ error: 'No tienes un perfil de artista' });
     }
 
+    const { title, description, genre, coverUrl } = req.body;
+
+    if (!title || !genre) {
+      return res.status(400).json({ error: 'El título y el género son obligatorios' });
+    }
+
     const album = await Album.create({
-      ...req.body,
+      title,
+      description,
+      genre,
+      coverUrl,
       artistId: artist.id,
       status: 'pending'
     });
 
-    res.status(201).json(album);
+    res.status(201).json({ message: 'Álbum creado exitosamente', album });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Error al crear álbum', detail: err.message });
   }
 };
 
+// Obtener todos los álbumes aprobados
 exports.getAllAlbums = async (req, res) => {
   try {
     const albums = await Album.findAll({
@@ -30,38 +40,51 @@ exports.getAllAlbums = async (req, res) => {
     });
     res.json(albums);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Error al obtener álbumes', detail: err.message });
   }
 };
 
+// Obtener álbum por ID
 exports.getAlbumById = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id, { include: [Artist] });
     if (!album) return res.status(404).json({ error: 'Álbum no encontrado' });
     res.json(album);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Error al obtener álbum', detail: err.message });
   }
 };
 
+// Actualizar álbum (solo campos permitidos)
 exports.updateAlbum = async (req, res) => {
   try {
-    const updated = await Album.update(req.body, { where: { id: req.params.id } });
-    res.json({ message: 'Álbum actualizado', updated });
+    const { title, description, genre, coverUrl } = req.body;
+
+    const [updated] = await Album.update(
+      { title, description, genre, coverUrl },
+      { where: { id: req.params.id } }
+    );
+
+    if (!updated) return res.status(404).json({ error: 'Álbum no encontrado' });
+
+    res.json({ message: 'Álbum actualizado correctamente' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Error al actualizar álbum', detail: err.message });
   }
 };
 
+// Eliminar álbum
 exports.deleteAlbum = async (req, res) => {
   try {
-    await Album.destroy({ where: { id: req.params.id } });
-    res.json({ message: 'Álbum eliminado' });
+    const deleted = await Album.destroy({ where: { id: req.params.id } });
+    if (!deleted) return res.status(404).json({ error: 'Álbum no encontrado' });
+    res.json({ message: 'Álbum eliminado correctamente' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Error al eliminar álbum', detail: err.message });
   }
 };
 
+// Obtener álbumes pendientes (para moderadores)
 exports.getPendingAlbums = async (req, res) => {
   try {
     const albums = await Album.findAll({
@@ -74,6 +97,7 @@ exports.getPendingAlbums = async (req, res) => {
   }
 };
 
+// Aprobar álbum
 exports.approveAlbum = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id);
@@ -81,12 +105,13 @@ exports.approveAlbum = async (req, res) => {
 
     album.status = 'approved';
     await album.save();
-    res.json({ message: 'Álbum aprobado' });
+    res.json({ message: 'Álbum aprobado correctamente' });
   } catch (err) {
     res.status(500).json({ error: 'Error al aprobar álbum', detail: err.message });
   }
 };
 
+// Rechazar álbum
 exports.rejectAlbum = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id);
@@ -94,7 +119,7 @@ exports.rejectAlbum = async (req, res) => {
 
     album.status = 'rejected';
     await album.save();
-    res.json({ message: 'Álbum rechazado' });
+    res.json({ message: 'Álbum rechazado correctamente' });
   } catch (err) {
     res.status(500).json({ error: 'Error al rechazar álbum', detail: err.message });
   }
