@@ -21,6 +21,8 @@ exports.createAlbum = async (req, res) => {
       description,
       genre,
       coverUrl,
+      license,
+      licenseUrl,
       artistId: artist.id,
       status: 'pending'
     });
@@ -58,10 +60,10 @@ exports.getAlbumById = async (req, res) => {
 // Actualizar álbum (solo campos permitidos)
 exports.updateAlbum = async (req, res) => {
   try {
-    const { title, description, genre, coverUrl } = req.body;
+    const { title, description, genre, coverUrl, license, licenseUrl } = req.body;
 
     const [updated] = await Album.update(
-      { title, description, genre, coverUrl },
+      { title, description, genre, coverUrl, license, licenseUrl },
       { where: { id: req.params.id } }
     );
 
