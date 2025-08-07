@@ -4,10 +4,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    duration: {
-      type: DataTypes.INTEGER, // En segundos
-      allowNull: true,
-    },
     trackNumber: {
       type: DataTypes.INTEGER,
       allowNull: true,
