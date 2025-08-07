@@ -6,7 +6,7 @@ const { requireAuth, requireAdminAuth } = require('../middleware/auth');
 // Rutas públicas o para usuarios autenticados
 
 // Crear un nuevo álbum (requiere perfil de artista)
-router.post('/', requireAuth, controller.createAlbum);
+router.post('/', controller.createAlbum);
 
 // Obtener todos los álbumes aprobados (público)
 router.get('/', controller.getAllAlbums);
