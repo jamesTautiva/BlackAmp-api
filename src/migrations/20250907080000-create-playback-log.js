@@ -12,7 +12,7 @@ module.exports = {
       songId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: 'Songs', key: 'id' },
+        references: { model: 'Song', key: 'id' },
         onDelete: 'CASCADE'
       },
       userId: {
