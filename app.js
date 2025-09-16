@@ -4,7 +4,11 @@ require('dotenv').config();
 const sequelize = require('./src/config/database');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://tu-frontend-produccion.com'], // orígenes permitidos
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true // si usas cookies o auth headers
+}));
 // Middlewares
 app.use(express.json());
 
