@@ -98,7 +98,13 @@ exports.getPendingAlbums = async (req, res) => {
   try {
     const albums = await Album.findAll({
       where: { status: 'pending' },
-      include: [{ model: Artist, as: 'artist' }]
+      include: [
+        {
+          model: Artist,
+          as: 'artist', // 👈 importante usar el alias correcto
+          attributes: ['id', 'name'] // solo traemos lo necesario
+        }
+      ]
     });
     res.json(albums);
   } catch (err) {
