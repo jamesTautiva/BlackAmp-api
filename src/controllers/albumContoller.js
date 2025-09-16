@@ -1,4 +1,4 @@
-const { Album, Artist, User } = require('../models');
+const { Album, Artist } = require('../models');
 
 // Crear álbum (estado por defecto: pending)
 exports.createAlbum = async (req, res) => {
@@ -113,21 +113,17 @@ exports.getPendingAlbums = async (req, res) => {
 };
 
 // traer álbum pendiente por ID (opcional, si necesitas detalles específicos) sin importar el estado
-exports.getArtistById = async (req, res) => {
+exports. getAlbumsById = async (req, res) => {
   try {
-    const artist = await Artist.findByPk(req.params.id, {
-      include: [
-        { model: User, as: 'user', attributes: ['id', 'name', 'email', 'role', 'imageUrl'] },
-        { model: Album, as: 'albums' } // 👈 importante usar el alias correcto
-      ]
+    const album = await Album.findByPk(req.params.id, {
+      include: [{ model: Artist, as: 'artist' }]
     });
-
-    if (!artist) return res.status(404).json({ error: 'Artista no encontrado' });
-    res.json(artist);
+    if (!album) return res.status(404).json({ error: 'Álbum no encontrado' });
+    res.json(album);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener artista', detail: err.message });
+    res.status(500).json({ error: 'Error al obtener álbum', detail: err.message });
   }
-};
+}
 
 
 // Aprobar álbum
