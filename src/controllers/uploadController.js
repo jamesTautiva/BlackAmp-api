@@ -11,83 +11,144 @@ const modelMap = {
   playlists: Playlist
 };
 
-// Función genérica para manejar subida/actualización
-const handleUpload = async ({ tipo, id, file }) => {
-  if (!file) throw new Error('No se proporcionó archivo');
-
-  const validTypes = Object.keys(modelMap);
-  if (!validTypes.includes(tipo)) throw new Error('Tipo no válido');
-
-  const model = modelMap[tipo];
-  const entity = await model.findByPk(id);
-  if (!entity) throw new Error(`${tipo.slice(0, -1)} no encontrado`);
-
-  // Eliminar imagen anterior si existe
-  if (entity.imageUrl) {
-    const parts = entity.imageUrl.split('/storage/v1/object/public/media/');
+// Función para eliminar imagen anterior de Supabase
+const deletePreviousImage = async (imageUrl) => {
+  if (!imageUrl) return;
+  
+  try {
+    const parts = imageUrl.split('/storage/v1/object/public/media/');
     if (parts.length === 2) {
       const filePath = parts[1];
-      await supabase.storage.from('media').remove([filePath]);
+      const { error } = await supabase.storage
+        .from('media')
+        .remove([filePath]);
+      
+      if (error) console.warn('No se pudo eliminar imagen anterior:', error.message);
     }
+  } catch (err) {
+    console.error('Error eliminando imagen anterior:', err);
   }
-
-  // Nombre del archivo
-  const extension = path.extname(file.originalname);
-  const filename = `${tipo}/${id}_${uuidv4()}${extension}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from('media')
-    .upload(filename, file.buffer, {
-      contentType: file.mimetype,
-      upsert: true
-    });
-
-  if (uploadError) throw new Error(uploadError.message);
-
-  // Guardar URL pública
-  const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
-  entity.imageUrl = publicUrl;
-  await entity.save();
-
-  return { entity, publicUrl };
 };
 
-// Controlador genérico: Upload
 exports.uploadFile = async (req, res) => {
   try {
     const { tipo, id } = req.params;
     const file = req.file;
 
-    const { entity, publicUrl } = await handleUpload({ tipo, id, file });
+    if (!file) {
+      return res.status(400).json({ error: 'Archivo no proporcionado' });
+    }
 
-    return res.json({
+    const model = modelMap[tipo];
+    if (!model) {
+      return res.status(400).json({ error: 'Tipo no válido' });
+    }
+
+    const entity = await model.findByPk(id);
+    if (!entity) {
+      return res.status(404).json({ error: `${tipo.slice(0, -1)} no encontrado` });
+    }
+
+    // Eliminar imagen anterior si existe
+    if (entity.imageUrl) {
+      await deletePreviousImage(entity.imageUrl);
+    }
+
+    const extension = path.extname(file.originalname);
+    const filename = `${tipo}/${id}_${uuidv4()}${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filename, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    if (uploadError) throw uploadError;
+
+    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
+    entity.imageUrl = publicUrl;
+    await entity.save();
+
+    return res.json({ 
       success: true,
-      message: 'Archivo subido correctamente',
-      imageUrl: publicUrl,
-      data: entity
+      message: 'Archivo subido correctamente', 
+      imageUrl: publicUrl 
     });
+
   } catch (err) {
-    console.error('Error en uploadFile:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('Error en subida:', err);
+    return res.status(500).json({ 
+      success: false,
+      error: 'Error interno del servidor', 
+      details: err.message 
+    });
   }
 };
 
-// Controlador genérico: Update
 exports.updateImage = async (req, res) => {
   try {
-    const { tipo, id } = req.params;
+    // Obtener tipo de parámetro o determinar por defecto
+    let { tipo = 'users', id } = req.params;
     const file = req.file;
 
-    const { entity, publicUrl } = await handleUpload({ tipo, id, file });
+    if (!file) {
+      return res.status(400).json({ error: 'No se proporcionó archivo' });
+    }
 
-    return res.json({
+    // Validar tipo
+    const validTypes = ['users', 'artists', 'albums', 'songs', 'playlists'];
+    if (!validTypes.includes(tipo)) {
+      return res.status(400).json({ error: 'Tipo no válido' });
+    }
+
+    const model = modelMap[tipo];
+    if (!model) {
+      return res.status(400).json({ error: 'Tipo no soportado' });
+    }
+
+    const entity = await model.findByPk(id);
+    if (!entity) {
+      return res.status(404).json({ error: `${tipo.slice(0, -1)} no encontrado` });
+    }
+
+    // Eliminar imagen anterior si existe
+    if (entity.imageUrl) {
+      const parts = entity.imageUrl.split('/storage/v1/object/public/media/');
+      if (parts.length === 2) {
+        const filePath = parts[1];
+        await supabase.storage.from('media').remove([filePath]);
+      }
+    }
+
+    const extension = path.extname(file.originalname);
+    const filename = `${tipo}/${id}_${uuidv4()}${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filename, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true
+      });
+
+    if (uploadError) throw uploadError;
+
+    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
+    entity.imageUrl = publicUrl;
+    await entity.save();
+
+    return res.status(200).json({ 
       success: true,
       message: 'Imagen actualizada correctamente',
-      imageUrl: publicUrl,
-      data: entity
+      imageUrl: publicUrl
     });
+
   } catch (err) {
     console.error('Error en updateImage:', err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ 
+      success: false,
+      error: 'Error al actualizar imagen',
+      details: err.message
+    });
   }
 };
