@@ -113,7 +113,8 @@ exports.getPendingAlbums = async (req, res) => {
 };
 
 // traer álbum pendiente por ID (opcional, si necesitas detalles específicos) sin importar el estado
-exports. getAlbumsById = async (req, res) => {
+// Obtener un álbum por ID
+exports.getAlbumById = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id, {
       include: [{ model: Artist, as: 'artist' }]
@@ -123,8 +124,22 @@ exports. getAlbumsById = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Error al obtener álbum', detail: err.message });
   }
-}
+};
 
+// Obtener todos los álbumes de un artista
+exports.getAlbumsByArtistId = async (req, res) => {
+  try {
+    const { artistId } = req.params;
+    const albums = await Album.findAll({
+      where: { artistId },
+      include: [{ model: Artist, as: 'artist' }]
+    });
+
+    res.json(albums);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener álbumes del artista', detail: err.message });
+  }
+};
 
 // Aprobar álbum
 exports.approveAlbum = async (req, res) => {
