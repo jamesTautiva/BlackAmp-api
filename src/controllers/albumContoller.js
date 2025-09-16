@@ -168,3 +168,34 @@ exports.rejectAlbum = async (req, res) => {
     res.status(500).json({ error: 'Error al rechazar álbum', detail: err.message });
   }
 };
+
+// Subir portada de álbum
+exports.uploadAlbumCover = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!req.file) return res.status(400).json({ error: 'No se recibió archivo' });
+
+    const fileExt = req.file.originalname.split('.').pop();
+    const fileName = `albums/${id}/cover.${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from('albums')
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: true,
+      });
+
+    if (error) throw error;
+
+    const { data: publicUrl } = supabase.storage
+      .from('albums')
+      .getPublicUrl(fileName);
+
+    // actualizar el álbum con la URL pública
+    await Album.update({ coverUrl: publicUrl.publicUrl }, { where: { id } });
+
+    res.json({ message: 'Portada subida', url: publicUrl.publicUrl });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al subir portada', detail: err.message });
+  }
+};

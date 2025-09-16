@@ -37,4 +37,6 @@ router.get('/artist/:artistId', controller.getAlbumsByArtistId);
 
 // Obtener un álbum por ID
 router.get('/:id', controller.getAlbumById);
+
+router
 module.exports = router;
