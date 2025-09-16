@@ -33,6 +33,6 @@ router.put('/admin/albums/:id/approve', requireAuth, requireAdminAuth, controlle
 router.put('/admin/albums/:id/reject', requireAuth, requireAdminAuth, controller.rejectAlbum);
 
 // obtener albums por artista ID
-router.get('/artist/:artistId', controller.getAlbumsByArtist);
+router.get('/artist/:artistId', controller.getAlbumsById);
 
 module.exports = router;
