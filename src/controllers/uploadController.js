@@ -33,56 +33,38 @@ const deletePreviousImage = async (imageUrl) => {
 exports.uploadFile = async (req, res) => {
   try {
     const { tipo, id } = req.params;
-    const file = req.file;
-
-    if (!file) {
-      return res.status(400).json({ error: 'Archivo no proporcionado' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se subió ningún archivo' });
     }
 
-    const model = modelMap[tipo];
-    if (!model) {
-      return res.status(400).json({ error: 'Tipo no válido' });
-    }
+    const filePath = `${tipo}/${Date.now()}_${req.file.originalname}`;
 
-    const entity = await model.findByPk(id);
-    if (!entity) {
-      return res.status(404).json({ error: `${tipo.slice(0, -1)} no encontrado` });
-    }
-
-    // Eliminar imagen anterior si existe
-    if (entity.imageUrl) {
-      await deletePreviousImage(entity.imageUrl);
-    }
-
-    const extension = path.extname(file.originalname);
-    const filename = `${tipo}/${id}_${uuidv4()}${extension}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('media')
-      .upload(filename, file.buffer, {
-        contentType: file.mimetype,
-        upsert: true
+    // Subir archivo a Supabase Storage
+    const { error } = await supabase.storage
+      .from('uploads')
+      .upload(filePath, req.file.buffer, {
+        contentType: req.file.mimetype,
       });
 
-    if (uploadError) throw uploadError;
+    if (error) throw error;
 
-    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
-    entity.imageUrl = publicUrl;
-    await entity.save();
+    // Generar URL pública
+    const { publicUrl } = supabase.storage.from('uploads').getPublicUrl(filePath).data;
 
-    return res.json({ 
-      success: true,
-      message: 'Archivo subido correctamente', 
-      imageUrl: publicUrl 
-    });
+    // ✅ Actualizar en BD según el tipo
+    if (tipo === 'albums') {
+      await Album.update({ coverUrl: publicUrl }, { where: { id } });
+    } else if (tipo === 'artists') {
+      await Artist.update({ imageUrl: publicUrl }, { where: { id } });
+    } else if (tipo === 'users') {
+      await User.update({ imageUrl: publicUrl }, { where: { id } });
+    } else if (tipo === 'songs') {
+      await Song.update({ fileUrl: publicUrl }, { where: { id } });
+    }
 
+    res.json({ message: 'Archivo subido correctamente', url: publicUrl });
   } catch (err) {
-    console.error('Error en subida:', err);
-    return res.status(500).json({ 
-      success: false,
-      error: 'Error interno del servidor', 
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Error al subir archivo', detail: err.message });
   }
 };
 
