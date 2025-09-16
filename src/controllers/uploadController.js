@@ -8,80 +8,103 @@ const modelMap = {
   artists: Artist,
   albums: Album,
   songs: Song,
-  playlists: Playlist
+  playlists: Playlist,
 };
 
-// Función para eliminar imagen anterior de Supabase
-const deletePreviousImage = async (imageUrl) => {
-  if (!imageUrl) return;
-  
+// Mapea qué campo actualizar según tipo
+const fieldMap = {
+  users: 'imageUrl',
+  artists: 'imageUrl',
+  playlists: 'imageUrl',
+  albums: 'coverUrl',
+  songs: 'fileUrl', // 👈 audio
+};
+
+// Función para eliminar archivo anterior de Supabase
+const deletePreviousFile = async (url) => {
+  if (!url) return;
   try {
-    const parts = imageUrl.split('/storage/v1/object/public/media/');
+    const parts = url.split('/storage/v1/object/public/media/');
     if (parts.length === 2) {
       const filePath = parts[1];
       const { error } = await supabase.storage
         .from('media')
         .remove([filePath]);
-      
-      if (error) console.warn('No se pudo eliminar imagen anterior:', error.message);
+
+      if (error) console.warn('No se pudo eliminar archivo anterior:', error.message);
     }
   } catch (err) {
-    console.error('Error eliminando imagen anterior:', err);
+    console.error('Error eliminando archivo anterior:', err);
   }
 };
 
 exports.uploadFile = async (req, res) => {
   try {
     const { tipo, id } = req.params;
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se subió ningún archivo' });
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: 'Archivo no proporcionado' });
     }
 
-    const filePath = `${tipo}/${Date.now()}_${req.file.originalname}`;
+    const model = modelMap[tipo];
+    if (!model) {
+      return res.status(400).json({ error: 'Tipo no válido' });
+    }
 
-    // Subir archivo a Supabase Storage
-    const { error } = await supabase.storage
-      .from('uploads')
-      .upload(filePath, req.file.buffer, {
-        contentType: req.file.mimetype,
+    const entity = await model.findByPk(id);
+    if (!entity) {
+      return res.status(404).json({ error: `${tipo.slice(0, -1)} no encontrado` });
+    }
+
+    const fieldName = fieldMap[tipo];
+    if (!fieldName) {
+      return res.status(400).json({ error: 'Tipo sin campo asociado' });
+    }
+
+    // Eliminar archivo anterior si existe
+    if (entity[fieldName]) {
+      await deletePreviousFile(entity[fieldName]);
+    }
+
+    const extension = path.extname(file.originalname);
+    const filename = `${tipo}/${id}_${uuidv4()}${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('media')
+      .upload(filename, file.buffer, {
+        contentType: file.mimetype,
+        upsert: true,
       });
 
-    if (error) throw error;
+    if (uploadError) throw uploadError;
 
-    // Generar URL pública
-    const { publicUrl } = supabase.storage.from('uploads').getPublicUrl(filePath).data;
+    const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
+    entity[fieldName] = publicUrl;
+    await entity.save();
 
-    // ✅ Actualizar en BD según el tipo
-    if (tipo === 'albums') {
-      await Album.update({ coverUrl: publicUrl }, { where: { id } });
-    } else if (tipo === 'artists') {
-      await Artist.update({ imageUrl: publicUrl }, { where: { id } });
-    } else if (tipo === 'users') {
-      await User.update({ imageUrl: publicUrl }, { where: { id } });
-    } else if (tipo === 'songs') {
-      await Song.update({ fileUrl: publicUrl }, { where: { id } });
-    }
-
-    res.json({ message: 'Archivo subido correctamente', url: publicUrl });
+    return res.json({
+      success: true,
+      message: 'Archivo subido correctamente',
+      url: publicUrl,
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Error al subir archivo', detail: err.message });
+    console.error('Error en subida:', err);
+    return res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+      details: err.message,
+    });
   }
 };
 
 exports.updateImage = async (req, res) => {
   try {
-    // Obtener tipo de parámetro o determinar por defecto
     let { tipo = 'users', id } = req.params;
     const file = req.file;
 
     if (!file) {
       return res.status(400).json({ error: 'No se proporcionó archivo' });
-    }
-
-    // Validar tipo
-    const validTypes = ['users', 'artists', 'albums', 'songs', 'playlists'];
-    if (!validTypes.includes(tipo)) {
-      return res.status(400).json({ error: 'Tipo no válido' });
     }
 
     const model = modelMap[tipo];
@@ -94,13 +117,14 @@ exports.updateImage = async (req, res) => {
       return res.status(404).json({ error: `${tipo.slice(0, -1)} no encontrado` });
     }
 
-    // Eliminar imagen anterior si existe
-    if (entity.imageUrl) {
-      const parts = entity.imageUrl.split('/storage/v1/object/public/media/');
-      if (parts.length === 2) {
-        const filePath = parts[1];
-        await supabase.storage.from('media').remove([filePath]);
-      }
+    const fieldName = fieldMap[tipo];
+    if (!fieldName) {
+      return res.status(400).json({ error: 'Tipo sin campo asociado' });
+    }
+
+    // Eliminar archivo anterior si existe
+    if (entity[fieldName]) {
+      await deletePreviousFile(entity[fieldName]);
     }
 
     const extension = path.extname(file.originalname);
@@ -110,27 +134,26 @@ exports.updateImage = async (req, res) => {
       .from('media')
       .upload(filename, file.buffer, {
         contentType: file.mimetype,
-        upsert: true
+        upsert: true,
       });
 
     if (uploadError) throw uploadError;
 
     const publicUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/media/${filename}`;
-    entity.imageUrl = publicUrl;
+    entity[fieldName] = publicUrl;
     await entity.save();
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       success: true,
-      message: 'Imagen actualizada correctamente',
-      imageUrl: publicUrl
+      message: 'Archivo actualizado correctamente',
+      url: publicUrl,
     });
-
   } catch (err) {
-    console.error('Error en updateImage:', err);
-    return res.status(500).json({ 
+    console.error('Error en updateFile:', err);
+    return res.status(500).json({
       success: false,
-      error: 'Error al actualizar imagen',
-      details: err.message
+      error: 'Error al actualizar archivo',
+      details: err.message,
     });
   }
 };
