@@ -32,4 +32,7 @@ router.put('/admin/albums/:id/approve', requireAuth, requireAdminAuth, controlle
 // Rechazar un álbum por ID (solo admin)
 router.put('/admin/albums/:id/reject', requireAuth, requireAdminAuth, controller.rejectAlbum);
 
+// obtener albums por artista ID
+router.get('/artist/:artistId', controller.getAlbumsByArtist);
+
 module.exports = router;
