@@ -43,7 +43,7 @@ exports.getAllAlbums = async (req, res) => {
   try {
     const albums = await Album.findAll({
       where: { status: 'approved' },
-      include: [Artist]
+      include: [{ model: Artist, as: 'artist' }]
     });
     res.json(albums);
   } catch (err) {
@@ -54,7 +54,9 @@ exports.getAllAlbums = async (req, res) => {
 // Obtener álbum por ID
 exports.getAlbumById = async (req, res) => {
   try {
-    const album = await Album.findByPk(req.params.id, { include: [Artist] });
+    const album = await Album.findByPk(req.params.id, {
+      include: [{ model: Artist, as: 'artist' }]
+    });
     if (!album) return res.status(404).json({ error: 'Álbum no encontrado' });
     res.json(album);
   } catch (err) {
@@ -96,7 +98,7 @@ exports.getPendingAlbums = async (req, res) => {
   try {
     const albums = await Album.findAll({
       where: { status: 'pending' },
-      include: [Artist]
+      include: [{ model: Artist, as: 'artist' }]
     });
     res.json(albums);
   } catch (err) {
