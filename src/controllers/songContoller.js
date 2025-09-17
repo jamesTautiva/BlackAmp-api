@@ -5,9 +5,6 @@ exports.createSong = async (req, res) => {
   try {
     const { title, audioUrl, albumId, artistId, composers, trackNumber, explicit, license, licenseUrl } = req.body;
 
-    if (!title || !composers || !Array.isArray(composers) || composers.length === 0) {
-      return res.status(400).json({ error: 'Faltan datos obligatorios.' });
-    }
 
     // Verifica que el álbum exista
     const album = await Album.findByPk(albumId);
