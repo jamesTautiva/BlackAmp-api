@@ -41,14 +41,6 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
-    artistId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'Artists',
-        key: 'id'
-      }
-    }
   }, {
     timestamps: true
   });
