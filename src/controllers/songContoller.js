@@ -3,18 +3,31 @@ const { Song, Composer, Album, Artist } = require('../models');
 // Crear canción
 exports.createSong = async (req, res) => {
   try {
-    const { title, audioUrl, albumId, composers } = req.body;
+    const { title, audioUrl, albumId, artistId, composers, trackNumber, explicit, license, licenseUrl } = req.body;
 
     if (!title || !composers || !Array.isArray(composers) || composers.length === 0) {
       return res.status(400).json({ error: 'Faltan datos obligatorios.' });
     }
 
-  
+    // Verifica que el álbum exista
+    const album = await Album.findByPk(albumId);
+    if (!album) return res.status(404).json({ error: 'Álbum no encontrado' });
 
-    const album = await Album.findOne({ where: { id: albumId} });
-    if (!album) return res.status(403).json({ error: 'El álbum no pertenece a tu perfil' });
+    // Verifica que el artista exista
+    const artist = await Artist.findByPk(artistId);
+    if (!artist) return res.status(404).json({ error: 'Artista no encontrado' });
 
-    const song = await Song.create({ title, audioUrl, albumId});
+    // Crea la canción
+    const song = await Song.create({ 
+      title, 
+      audioUrl, 
+      albumId, 
+      artistId,
+      trackNumber: trackNumber || null,
+      explicit: explicit || false,
+      license: license || 'CC-BY',
+      licenseUrl: licenseUrl || ''
+    });
 
     // Crear o encontrar compositores
     const composerInstances = await Promise.all(
@@ -32,6 +45,7 @@ exports.createSong = async (req, res) => {
 
     res.status(201).json(songWithComposers);
   } catch (err) {
+    console.error('Error creating song:', err);
     res.status(500).json({ error: err.message });
   }
 };
