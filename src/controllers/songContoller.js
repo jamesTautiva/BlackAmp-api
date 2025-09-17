@@ -11,10 +11,10 @@ exports.createSong = async (req, res) => {
 
   
 
-    const album = await Album.findOne({ where: { id: albumId, artistId: artist.id } });
+    const album = await Album.findOne({ where: { id: albumId} });
     if (!album) return res.status(403).json({ error: 'El álbum no pertenece a tu perfil' });
 
-    const song = await Song.create({ title, audioUrl, albumId, artistId: artist.id });
+    const song = await Song.create({ title, audioUrl, albumId});
 
     // Crear o encontrar compositores
     const composerInstances = await Promise.all(
