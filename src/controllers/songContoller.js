@@ -1,6 +1,6 @@
-const { Song, Composer, Album, Artist} = require('../models');
+const { Song, Composer, Album, Artist } = require('../models');
 
-
+// Crear canción
 exports.createSong = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -16,8 +16,9 @@ exports.createSong = async (req, res) => {
     const album = await Album.findOne({ where: { id: albumId, artistId: artist.id } });
     if (!album) return res.status(403).json({ error: 'El álbum no pertenece a tu perfil' });
 
-    const song = await Song.create({ title, audioUrl, albumId });
+    const song = await Song.create({ title, audioUrl, albumId, artistId: artist.id });
 
+    // Crear o encontrar compositores
     const composerInstances = await Promise.all(
       composers.map(async (name) => {
         const [composer] = await Composer.findOrCreate({ where: { name } });
@@ -26,16 +27,38 @@ exports.createSong = async (req, res) => {
     );
 
     await song.addComposers(composerInstances);
-    res.status(201).json(song);
+
+    const songWithComposers = await Song.findByPk(song.id, {
+      include: [{ model: Composer, as: 'composers', through: { attributes: [] } }]
+    });
+
+    res.status(201).json(songWithComposers);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// Obtener todas las canciones
 exports.getAllSongs = async (req, res) => {
   try {
     const songs = await Song.findAll({
-      include: Composer,
+      include: [
+        {
+          model: Composer,
+          as: 'composers',
+          through: { attributes: [] }
+        },
+        {
+          model: Album,
+          as: 'album',
+          attributes: ['id', 'title']
+        },
+        {
+          model: Artist,
+          as: 'artist',
+          attributes: ['id', 'name']
+        }
+      ]
     });
     res.json(songs);
   } catch (err) {
@@ -43,10 +66,15 @@ exports.getAllSongs = async (req, res) => {
   }
 };
 
+// Obtener canción por ID
 exports.getSongById = async (req, res) => {
   try {
     const song = await Song.findByPk(req.params.id, {
-      include: Composer,
+      include: [
+        { model: Composer, as: 'composers', through: { attributes: [] } },
+        { model: Album, as: 'album', attributes: ['id', 'title'] },
+        { model: Artist, as: 'artist', attributes: ['id', 'name'] }
+      ]
     });
     if (!song) return res.status(404).json({ error: 'Canción no encontrada' });
     res.json(song);
@@ -55,6 +83,7 @@ exports.getSongById = async (req, res) => {
   }
 };
 
+// Actualizar canción
 exports.updateSong = async (req, res) => {
   try {
     const { title, audioUrl, composers } = req.body;
@@ -71,15 +100,20 @@ exports.updateSong = async (req, res) => {
           return composer;
         })
       );
-      await song.setComposers(composerInstances); // reemplaza los compositores existentes
+      await song.setComposers(composerInstances);
     }
 
-    res.json({ message: 'Canción actualizada', song });
+    const updatedSong = await Song.findByPk(song.id, {
+      include: [{ model: Composer, as: 'composers', through: { attributes: [] } }]
+    });
+
+    res.json({ message: 'Canción actualizada', song: updatedSong });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// Eliminar canción
 exports.deleteSong = async (req, res) => {
   try {
     const song = await Song.findByPk(req.params.id);
