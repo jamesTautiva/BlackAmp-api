@@ -3,15 +3,13 @@ const { Song, Composer, Album, Artist } = require('../models');
 // Crear canción
 exports.createSong = async (req, res) => {
   try {
-    const userId = req.user.id;
     const { title, audioUrl, albumId, composers } = req.body;
 
     if (!title || !composers || !Array.isArray(composers) || composers.length === 0) {
       return res.status(400).json({ error: 'Faltan datos obligatorios.' });
     }
 
-    const artist = await Artist.findOne({ where: { userId } });
-    if (!artist) return res.status(403).json({ error: 'No autorizado' });
+  
 
     const album = await Album.findOne({ where: { id: albumId, artistId: artist.id } });
     if (!album) return res.status(403).json({ error: 'El álbum no pertenece a tu perfil' });
