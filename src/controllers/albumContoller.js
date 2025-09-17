@@ -3,23 +3,17 @@ const { Album, Artist } = require('../models');
 // Crear álbum (estado por defecto: pending)
 exports.createAlbum = async (req, res) => {
   try {
-    const { title, year, producer, genre, coverUrl, license, licenseUrl, artistId } = req.body;
+    const { title, year, producer, genre, coverUrl, license, licenseUrl } = req.body;
 
-    if (!title || !genre || !license || !licenseUrl || !year || !artistId) {
+    if (!title || !genre || !license || !licenseUrl || !year) {
       return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    // Validar que el artista existe
-    const artist = await Artist.findByPk(artistId);
+    // 🔥 Buscar el artista asociado al usuario autenticado
+    const artist = await Artist.findOne({ where: { userId: req.user.id } });
     if (!artist) {
-      return res.status(404).json({ error: 'Artista no encontrado' });
+      return res.status(403).json({ error: 'No tienes un perfil de artista' });
     }
-
-    // Opcional: validar si el usuario tiene permiso para crear álbum para ese artista
-    // Solo si deseas restringir a admins o al mismo artista:
-    // if (artist.userId !== req.user.id && req.user.role !== 'admin') {
-    //   return res.status(403).json({ error: 'No autorizado para crear álbum para este artista' });
-    // }
 
     const album = await Album.create({
       title,
@@ -29,7 +23,7 @@ exports.createAlbum = async (req, res) => {
       coverUrl,
       license,
       licenseUrl,
-      artistId: artist.id,
+      artistId: artist.id,   // 🔥 forzado desde el usuario
       status: 'pending'
     });
 
