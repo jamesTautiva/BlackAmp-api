@@ -3,16 +3,33 @@ const { Song, Composer, Album, Artist } = require('../models');
 // Crear canción
 exports.createSong = async (req, res) => {
   try {
-    const { title, audioUrl, albumId, artistId, composers, trackNumber, explicit, license, licenseUrl } = req.body;
+    let { 
+      title, 
+      audioUrl, 
+      albumId, 
+      artistId, 
+      composers, 
+      trackNumber, 
+      explicit, 
+      license, 
+      licenseUrl 
+    } = req.body;
 
+    // Normalizar compositores: si viene como string, convertirlo en array
+    if (typeof composers === "string") {
+      composers = composers.split(",").map(c => c.trim()); 
+    }
+    if (!Array.isArray(composers)) {
+      composers = []; 
+    }
 
     // Verifica que el álbum exista
     const album = await Album.findByPk(albumId);
-    if (!album) return res.status(404).json({ error: 'Álbum no encontrado' });
+    if (!album) return res.status(404).json({ error: "Álbum no encontrado" });
 
     // Verifica que el artista exista
     const artist = await Artist.findByPk(artistId);
-    if (!artist) return res.status(404).json({ error: 'Artista no encontrado' });
+    if (!artist) return res.status(404).json({ error: "Artista no encontrado" });
 
     // Crea la canción
     const song = await Song.create({ 
@@ -22,30 +39,33 @@ exports.createSong = async (req, res) => {
       artistId,
       trackNumber: trackNumber || null,
       explicit: explicit || false,
-      license: license || 'CC-BY',
-      licenseUrl: licenseUrl || ''
+      license: license || "CC-BY",
+      licenseUrl: licenseUrl || ""
     });
 
     // Crear o encontrar compositores
-    const composerInstances = await Promise.all(
-      composers.map(async (name) => {
-        const [composer] = await Composer.findOrCreate({ where: { name } });
-        return composer;
-      })
-    );
+    if (composers.length > 0) {
+      const composerInstances = await Promise.all(
+        composers.map(async (name) => {
+          const [composer] = await Composer.findOrCreate({ where: { name } });
+          return composer;
+        })
+      );
+      await song.addComposers(composerInstances);
+    }
 
-    await song.addComposers(composerInstances);
-
+    // Retornar con compositores incluidos
     const songWithComposers = await Song.findByPk(song.id, {
-      include: [{ model: Composer, as: 'composers', through: { attributes: [] } }]
+      include: [{ model: Composer, as: "composers", through: { attributes: [] } }]
     });
 
     res.status(201).json(songWithComposers);
   } catch (err) {
-    console.error('Error creating song:', err);
+    console.error("Error creating song:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Obtener todas las canciones
 exports.getAllSongs = async (req, res) => {
@@ -95,29 +115,59 @@ exports.getSongById = async (req, res) => {
 // Actualizar canción
 exports.updateSong = async (req, res) => {
   try {
-    const { title, audioUrl, composers } = req.body;
+    let { 
+      title, 
+      audioUrl, 
+      albumId, 
+      artistId, 
+      composers, 
+      trackNumber, 
+      explicit, 
+      license, 
+      licenseUrl 
+    } = req.body;
 
     const song = await Song.findByPk(req.params.id);
-    if (!song) return res.status(404).json({ error: 'Canción no encontrada' });
+    if (!song) return res.status(404).json({ error: "Canción no encontrada" });
 
-    await song.update({ title, audioUrl });
+    // Normalizar compositores
+    if (typeof composers === "string") {
+      composers = composers.split(",").map(c => c.trim());
+    }
+    if (!Array.isArray(composers)) {
+      composers = [];
+    }
 
-    if (composers && Array.isArray(composers)) {
+    // Actualizar datos básicos
+    await song.update({
+      title: title ?? song.title,
+      audioUrl: audioUrl ?? song.audioUrl,
+      albumId: albumId ?? song.albumId,
+      artistId: artistId ?? song.artistId,
+      trackNumber: trackNumber ?? song.trackNumber,
+      explicit: explicit ?? song.explicit,
+      license: license ?? song.license,
+      licenseUrl: licenseUrl ?? song.licenseUrl
+    });
+
+    // Si enviaron compositores, actualizamos relaciones
+    if (composers.length > 0) {
       const composerInstances = await Promise.all(
         composers.map(async (name) => {
           const [composer] = await Composer.findOrCreate({ where: { name } });
           return composer;
         })
       );
-      await song.setComposers(composerInstances);
+      await song.setComposers(composerInstances); // reemplaza relaciones anteriores
     }
 
     const updatedSong = await Song.findByPk(song.id, {
-      include: [{ model: Composer, as: 'composers', through: { attributes: [] } }]
+      include: [{ model: Composer, as: "composers", through: { attributes: [] } }]
     });
 
-    res.json({ message: 'Canción actualizada', song: updatedSong });
+    res.status(200).json(updatedSong);
   } catch (err) {
+    console.error("Error updating song:", err);
     res.status(500).json({ error: err.message });
   }
 };
