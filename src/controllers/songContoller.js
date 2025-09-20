@@ -186,3 +186,17 @@ exports.deleteSong = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.getSongsByAlbum = async (req, res) => {
+  try {
+    const songs = aweait Song.findall({
+      where: { albumId: req.params.albumId},
+      include: [
+        { model: Artist, as: 'artist', attributes: ['id', 'name'] },
+      ]
+    });
+    res.json(songs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}

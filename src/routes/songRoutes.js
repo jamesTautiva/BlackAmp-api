@@ -8,5 +8,6 @@ router.get('/', controller.getAllSongs);
 router.get('/:id', controller.getSongById);
 router.put('/:id', requireAuth, controller.updateSong);
 router.delete('/:id', requireAuth, controller.deleteSong);
+router.get('/album/:albumId', controller.getSongsByAlbum);
 
 module.exports = router;
