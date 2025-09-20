@@ -189,7 +189,7 @@ exports.deleteSong = async (req, res) => {
 
 exports.getSongsByAlbum = async (req, res) => {
   try {
-    const songs = await Song.findall({
+    const songs = await Song.findAll({
       where: { albumId: req.params.albumId},
       include: [
         { model: Artist, as: 'artist', attributes: ['id', 'name'] },
