@@ -17,7 +17,7 @@ const fieldMap = {
   artists: 'imageUrl',
   playlists: 'imageUrl',
   albums: 'coverUrl',
-  songs: 'fileUrl', // 👈 audio
+  songs: 'audioUrl', // 👈 audio
 };
 
 // Función para eliminar archivo anterior de Supabase
