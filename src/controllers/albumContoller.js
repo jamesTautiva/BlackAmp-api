@@ -1,4 +1,4 @@
-const { Album, Artist } = require('../models');
+const { Album, Artist, Song } = require('../models');
 
 // Crear álbum (estado por defecto: pending)
 exports.createAlbum = async (req, res) => {
