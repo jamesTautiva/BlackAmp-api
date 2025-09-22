@@ -114,15 +114,29 @@ exports.getPendingAlbums = async (req, res) => {
 
 // traer álbum pendiente por ID (opcional, si necesitas detalles específicos) sin importar el estado
 // Obtener un álbum por ID
+
 exports.getAlbumById = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id, {
-      include: [{ model: Artist, as: 'artist' }]
+      include: [
+        { 
+          model: Artist, 
+          attributes: ['id', 'name', 'description', 'genere', 'facebook', 'instagram', 'youtube'] 
+        },
+        { 
+          model: Song, 
+          attributes: ['id', 'title', 'audioUrl', 'duration'] 
+        }
+      ]
     });
-    if (!album) return res.status(404).json({ error: 'Álbum no encontrado' });
+
+    if (!album) {
+      return res.status(404).json({ error: 'Álbum no encontrado' });
+    }
+
     res.json(album);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener álbum', detail: err.message });
+    res.status(500).json({ error: 'Error al obtener el álbum', detail: err.message });
   }
 };
 
