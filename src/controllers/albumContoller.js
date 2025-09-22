@@ -52,17 +52,7 @@ exports.getAllAlbums = async (req, res) => {
 };
 
 // Obtener álbum por ID
-exports.getAlbumById = async (req, res) => {
-  try {
-    const album = await Album.findByPk(req.params.id, {
-      include: [{ model: Artist, as: 'artist' }]
-    });
-    if (!album) return res.status(404).json({ error: 'Álbum no encontrado' });
-    res.json(album);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener álbum', detail: err.message });
-  }
-};
+
 
 // Actualizar álbum (solo campos permitidos)
 exports.updateAlbum = async (req, res) => {
@@ -119,15 +109,15 @@ exports.getAlbumById = async (req, res) => {
   try {
     const album = await Album.findByPk(req.params.id, {
       include: [
-        { 
-          model: Artist, 
-          attributes: ['id', 'name', 'description', 'genere', 'facebook', 'instagram', 'youtube'] 
-        },
-        { 
-          model: Song, 
-          attributes: ['id', 'title', 'audioUrl', 'duration'] 
-        }
-      ]
+              {
+                model: Artist,
+                as: 'artist', // 👈 alias EXACTO como está en tu modelo
+              },
+              {
+                model: Song,
+                as: 'songs', // 👈 igual, respeta el alias que usaste
+              },
+            ],
     });
 
     if (!album) {
