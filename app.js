@@ -21,8 +21,8 @@ const songRoutes = require('./src/routes/songRoutes');
 const playlistRoutes = require('./src/routes/playlistRoutes');
 const analyticsRoutes = require('./src/routes/analytics');
 const songPlayRoutes = require('./src/routes/songPlayRoutes');
-const likeRoutes = require("./routes/likeRoutes");
-const commentRoutes = require("./routes/commentRoutes");
+const likeRoutes = require("./src/routes/likeRoutes");
+const commentRoutes = require("./src/routes/commentRoutes");
 
 
 app.use('/auth', authRoutes);
