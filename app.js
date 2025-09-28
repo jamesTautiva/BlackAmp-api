@@ -20,6 +20,7 @@ const albumRoutes = require('./src/routes/albumRoutes');
 const songRoutes = require('./src/routes/songRoutes');
 const playlistRoutes = require('./src/routes/playlistRoutes');
 const analyticsRoutes = require('./src/routes/analytics');
+const songPlayRoutes = require('./src/routes/songPlayRoutes');
 
 app.use('/auth', authRoutes);
 app.use('/upload', uploadRoutes);
@@ -27,6 +28,8 @@ app.use('/artists', artistRoutes);
 app.use('/albums', albumRoutes);
 app.use('/songs', songRoutes);
 app.use('/playlists', playlistRoutes);
+app.use('/analytics', analyticsRoutes);
+app.use('/songplays', songPlayRoutes);
 
 const port = process.env.PORT || 3000;
 
