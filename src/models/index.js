@@ -11,6 +11,8 @@ const Composer = require('./Composer')(sequelize, DataTypes);
 const PlaybackLog = require('./PlaybackLog')(sequelize, DataTypes);
 const PlaylistSongs = require('./PlaylistSong')(sequelize, DataTypes);
 const SongPlay = require('./SongPlay')(sequelize, DataTypes);
+const Like = require('./Like')(sequelize, DataTypes);
+const Comment = require('./Comment')(sequelize, DataTypes);
 
 
 // Associations
