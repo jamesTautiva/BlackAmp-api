@@ -21,6 +21,9 @@ const songRoutes = require('./src/routes/songRoutes');
 const playlistRoutes = require('./src/routes/playlistRoutes');
 const analyticsRoutes = require('./src/routes/analytics');
 const songPlayRoutes = require('./src/routes/songPlayRoutes');
+const likeRoutes = require("./routes/likeRoutes");
+const commentRoutes = require("./routes/commentRoutes");
+
 
 app.use('/auth', authRoutes);
 app.use('/upload', uploadRoutes);
@@ -30,6 +33,8 @@ app.use('/songs', songRoutes);
 app.use('/playlists', playlistRoutes);
 app.use('/analytics', analyticsRoutes);
 app.use('/songplays', songPlayRoutes);
+app.use("/likes", likeRoutes);
+app.use("/comments", commentRoutes);
 
 const port = process.env.PORT || 3000;
 

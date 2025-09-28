@@ -76,6 +76,22 @@ SongPlay.belongsTo(User, { foreignKey: "userId" });
 SongPlay.belongsTo(Song, { foreignKey: "songId" });
 SongPlay.belongsTo(Artist, { foreignKey: "artistId" });
 SongPlay.belongsTo(Album, { foreignKey: "albumId" });
+
+// Likes
+User.hasMany(Like, { foreignKey: 'userId', as: 'likes' });
+Like.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+Song.hasMany(Like, { foreignKey: 'songId', as: 'likes' });
+Album.hasMany(Like, { foreignKey: 'albumId', as: 'likes' });
+Playlist.hasMany(Like, { foreignKey: 'playlistId', as: 'likes' });
+
+// Comments
+User.hasMany(Comment, { foreignKey: 'userId', as: 'comments' });
+Comment.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+Song.hasMany(Comment, { foreignKey: 'songId', as: 'comments' });
+Album.hasMany(Comment, { foreignKey: 'albumId', as: 'comments' });
+Playlist.hasMany(Comment, { foreignKey: 'playlistId', as: 'comments' });
 // Export models and sequelize
 module.exports = {
   sequelize,
