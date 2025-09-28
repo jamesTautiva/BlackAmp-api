@@ -68,35 +68,25 @@ Song.belongsToMany(Playlist, {
 PlaybackLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 PlaybackLog.belongsTo(Song, { foreignKey: 'songId', as: 'song' });
 
-
-// Una playlist pertenece a un usuario (el que la crea)
-    Playlist.belongsTo(models.User, {
-      foreignKey: "userId",
-      as: "User",
-    });
- // Relación muchos a muchos con canciones
-    Playlist.belongsToMany(models.Song, {
-      through: "PlaylistSongs",
-      foreignKey: "playlistId",
-      otherKey: "songId",
-      as: "songs",
-    });
-// Relación N:M Playlist ↔ Song
 Playlist.belongsToMany(Song, {
-  through: 'PlaylistSong',
+  through: PlaylistSongs,
   foreignKey: 'playlistId',
   otherKey: 'songId',
-});
-Song.belongsToMany(Playlist, {
-  through: 'PlaylistSong',
-  foreignKey: 'songId',
-  otherKey: 'playlistId',
+  as: 'songs'
 });
 
-SongPlay.belongsTo(models.User, { foreignKey: "userId" });
-SongPlay.belongsTo(models.Song, { foreignKey: "songId" });
-SongPlay.belongsTo(models.Artist, { foreignKey: "artistId" });
-SongPlay.belongsTo(models.Album, { foreignKey: "albumId" });
+Song.belongsToMany(Playlist, {
+  through: PlaylistSongs,
+  foreignKey: 'songId',
+  otherKey: 'playlistId',
+  as: 'playlists'
+});
+
+Playlist.belongsTo(User, { foreignKey: "userId" });
+SongPlay.belongsTo(User, { foreignKey: "userId" });
+SongPlay.belongsTo(Song, { foreignKey: "songId" });
+SongPlay.belongsTo(Artist, { foreignKey: "artistId" });
+SongPlay.belongsTo(Album, { foreignKey: "albumId" });
 // Export models and sequelize
 module.exports = {
   sequelize,
