@@ -70,10 +70,7 @@ PlaybackLog.belongsTo(Song, { foreignKey: 'songId', as: 'song' });
 
 
 // Una playlist pertenece a un usuario (el que la crea)
-    Playlist.belongsTo(models.User, {
-      foreignKey: "userId",
-      as: "User",
-    });
+
  // Relación muchos a muchos con canciones
     Playlist.belongsToMany(models.Song, {
       through: "PlaylistSongs",
