@@ -51,18 +51,7 @@ Composer.belongsToMany(Song, {
 
 // Playlist - Song (many to many)
 
-Playlist.belongsToMany(Song, {
-  through: PlaylistSongs,
-  foreignKey: 'playlistId',
-  otherKey: 'songId',
-  as: 'songs'
-});
-Song.belongsToMany(Playlist, {
-  through: PlaylistSongs,
-  foreignKey: 'songId',
-  otherKey: 'playlistId',
-  as: 'playlists'
-});
+
 
 // PlaybackLog
 PlaybackLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
