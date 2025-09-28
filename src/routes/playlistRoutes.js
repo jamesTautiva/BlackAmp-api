@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Controller = require('../controllers/playlistContoller');
+const Controller = require('../controllers/playlistController');
 const { requireAuth } = require('../middleware/auth');
 
 // Crear playlist
@@ -18,6 +18,6 @@ router.post("/add-song",  Controller.addSongToPlaylist);
 router.post("/remove-song",  Controller.removeSongFromPlaylist);
 
 // Eliminar playlist
-router.delete("/:id", playlistController.deletePlaylist);
+router.delete("/:id", Controller.deletePlaylist);
 
 module.exports = router;
