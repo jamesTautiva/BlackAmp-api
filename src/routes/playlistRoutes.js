@@ -1,21 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/playlistContoller');
+const Controller = require('../controllers/playlistContoller');
 const { requireAuth } = require('../middleware/auth');
 
 // Crear playlist
-router.post("/",  playlistController.createPlaylist);
+router.post("/",  Controller.createPlaylist);
 
 // Obtener todas las playlists
-router.get("/", playlistController.getAllPlaylists);
+router.get("/", Controller.getAllPlaylists);
 
 // Obtener una playlist por ID
-router.get("/:id", playlistController.getPlaylistById);
+router.get("/:id", Controller.getPlaylistById);
 
 // Agregar canción a playlist
-router.post("/add-song",  playlistController.addSongToPlaylist);
+router.post("/add-song",  Controller.addSongToPlaylist);
 // Quitar canción de playlist
-router.post("/remove-song",  playlistController.removeSongFromPlaylist);
+router.post("/remove-song",  Controller.removeSongFromPlaylist);
 
 // Eliminar playlist
 router.delete("/:id", playlistController.deletePlaylist);
