@@ -6,6 +6,6 @@ const songPlayController = require("../controllers/songPlayController");
 router.post("/register",  songPlayController.registerPlay);
 
 // Historial de usuario
-router.get("/history",  songPlayController.getUserHistory);
+router.get("/history/:userId",  songPlayController.getUserHistory);
 
 module.exports = router;
