@@ -124,6 +124,92 @@ exports.monthlyPlays = async (req, res) => {
   }
 };
 
+exports.artistStats = async (req, res) => {
+  try {
+    const artistId = req.params.artistId;
+
+    // 🟦 1. Obtener todas las canciones del artista
+    const songs = await Song.findAll({
+      where: { artistId },
+      attributes: ["id", "title", "albumId"],
+    });
+
+    if (songs.length === 0) {
+      return res.json({
+        totalPlays: 0,
+        topSong: null,
+        topAlbum: null,
+        songsStats: [],
+        albumsStats: [],
+      });
+    }
+
+    const songIds = songs.map((s) => s.id);
+
+    // 🟦 2. Plays por canción
+    const songsStats = await SongPlay.findAll({
+      attributes: [
+        "songId",
+        [sequelize.fn("COUNT", sequelize.col("songId")), "playCount"],
+      ],
+      where: { songId: songIds },
+      include: [
+        { model: Song, attributes: ["title", "albumId"] },
+        { model: Album, attributes: ["title", "coverUrl"] },
+      ],
+      group: ["SongPlay.songId", "Song.id", "Album.id"],
+      order: [[sequelize.literal("playCount"), "DESC"]],
+    });
+
+    // 🟦 3. Total del artista
+    const totalPlays = songsStats.reduce(
+      (acc, item) => acc + Number(item.dataValues.playCount),
+      0
+    );
+
+    // 🟦 4. Top canción
+    const topSong = songsStats.length > 0 ? songsStats[0] : null;
+
+    // 🟦 5. Agrupar por álbum
+    const albumsMap = {};
+    songsStats.forEach((item) => {
+      const albumId = item.Song.albumId;
+      const playCount = Number(item.dataValues.playCount);
+      const albumTitle = item.Album?.title || "Sin álbum";
+
+      if (!albumsMap[albumId]) {
+        albumsMap[albumId] = {
+          albumId,
+          title: albumTitle,
+          coverUrl: item.Album?.coverUrl || null,
+          playCount: 0,
+        };
+      }
+
+      albumsMap[albumId].playCount += playCount;
+    });
+
+    const albumsStats = Object.values(albumsMap).sort(
+      (a, b) => b.playCount - a.playCount
+    );
+
+    // 🟦 6. Top álbum
+    const topAlbum = albumsStats.length > 0 ? albumsStats[0] : null;
+
+    // 🟦 7. Respuesta final
+    res.json({
+      totalPlays,
+      topSong,
+      topAlbum,
+      songsStats,
+      albumsStats,
+    });
+  } catch (error) {
+    console.error("Error obteniendo estadísticas del artista:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
 
 
 
