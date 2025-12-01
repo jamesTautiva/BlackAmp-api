@@ -11,7 +11,10 @@ exports.registerPlay = async (req, res) => {
 
     // Traer info de la canción
     const song = await Song.findByPk(songId, {
-      include: [{ model: Album }, { model: Artist }],
+      include: [
+        { model: Album, as: "album" },
+        { model: Artist, as: "artist" },
+      ],
     });
 
     if (!song) {
