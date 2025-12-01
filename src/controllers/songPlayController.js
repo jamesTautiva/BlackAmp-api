@@ -38,7 +38,7 @@ exports.registerPlay = async (req, res) => {
 // Obtener historial de reproducciones de un usuario
 exports.getUserHistory = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const { userId } = req.params;
 
     const history = await SongPlay.findAll({
       where: { userId },
